@@ -3,9 +3,14 @@
 // TranscriptionEngine enum and model initialization/validation logic.
 
 use super::provider::TranscriptionProvider;
+use super::openai_whisper_provider::OpenAIWhisperProvider;
 use log::{info, warn};
 use std::sync::Arc;
 use tauri::{AppHandle, Manager, Runtime};
+use tokio::sync::OnceCell;
+
+// Global OpenAI Whisper provider instance (cloud providers are stateless, just need API key)
+static OPENAI_WHISPER_PROVIDER: OnceCell<Arc<OpenAIWhisperProvider>> = OnceCell::const_new();
 
 // ============================================================================
 // TRANSCRIPTION ENGINE ENUM
@@ -135,10 +140,46 @@ pub async fn validate_transcription_model_ready<R: Runtime>(app: &AppHandle<R>) 
                 }
             }
         }
+        "openai" => {
+            info!("🔍 Validating OpenAI Whisper API configuration...");
+
+            // For cloud providers, we just need to verify the API key is set
+            match &config.api_key {
+                Some(key) if !key.is_empty() => {
+                    info!("✅ OpenAI Whisper API key is configured");
+
+                    // Initialize provider and set API key
+                    let provider = OPENAI_WHISPER_PROVIDER
+                        .get_or_init(|| async { Arc::new(OpenAIWhisperProvider::new()) })
+                        .await;
+                    provider.set_api_key(key.clone()).await;
+
+                    Ok(())
+                }
+                _ => {
+                    warn!("❌ OpenAI Whisper API key not configured");
+                    Err("OpenAI API key is required for cloud transcription. Please add your API key in settings.".to_string())
+                }
+            }
+        }
+        "deepgram" => {
+            info!("🔍 Validating Deepgram API configuration...");
+            // Deepgram support - placeholder for future implementation
+            match &config.api_key {
+                Some(key) if !key.is_empty() => {
+                    info!("✅ Deepgram API key is configured");
+                    // TODO: Implement Deepgram provider
+                    Err("Deepgram provider is not yet implemented. Please use 'openai' for cloud transcription.".to_string())
+                }
+                _ => {
+                    Err("Deepgram API key is required. Please add your API key in settings.".to_string())
+                }
+            }
+        }
         other => {
-            warn!("❌ Unsupported transcription provider for local recording: {}", other);
+            warn!("❌ Unsupported transcription provider: {}", other);
             Err(format!(
-                "Provider '{}' is not supported for local transcription. Please select 'localWhisper' or 'parakeet'.",
+                "Provider '{}' is not supported. Please select 'localWhisper', 'parakeet', or 'openai'.",
                 other
             ))
         }
@@ -211,6 +252,27 @@ pub async fn get_or_init_transcription_engine<R: Runtime>(
                     Err("Parakeet engine not initialized. This should not happen after validation.".to_string())
                 }
             }
+        }
+        "openai" => {
+            info!("☁️ Initializing OpenAI Whisper cloud transcription engine");
+
+            // Get or create the provider
+            let provider = OPENAI_WHISPER_PROVIDER
+                .get_or_init(|| async { Arc::new(OpenAIWhisperProvider::new()) })
+                .await;
+
+            // Set API key from config
+            if let Some(ref key) = config.api_key {
+                provider.set_api_key(key.clone()).await;
+            }
+
+            // Verify API key is set
+            if !provider.has_api_key().await {
+                return Err("OpenAI API key not configured. Please add your API key in settings.".to_string());
+            }
+
+            info!("✅ OpenAI Whisper cloud provider ready");
+            Ok(TranscriptionEngine::Provider(provider.clone()))
         }
         "localWhisper" | _ => {
             info!("🎤 Initializing Whisper transcription engine");

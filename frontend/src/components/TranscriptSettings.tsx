@@ -52,7 +52,7 @@ export function TranscriptSettings({ transcriptModelConfig, setTranscriptModelCo
         deepgram: ['nova-2-phonecall'],
         elevenLabs: ['eleven_multilingual_v2'],
         groq: ['llama-3.3-70b-versatile'],
-        openai: ['gpt-4o'],
+        openai: ['whisper-1'],
     };
     const requiresApiKey = transcriptModelConfig.provider === 'deepgram' || transcriptModelConfig.provider === 'elevenLabs' || transcriptModelConfig.provider === 'openai' || transcriptModelConfig.provider === 'groq';
 
@@ -118,12 +118,10 @@ export function TranscriptSettings({ transcriptModelConfig, setTranscriptModelCo
                                     <SelectValue placeholder="Select provider" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="parakeet">⚡ Parakeet (Recommended - Real-time / Accurate)</SelectItem>
-                                    <SelectItem value="localWhisper">🏠 Local Whisper (High Accuracy)</SelectItem>
-                                    {/* <SelectItem value="deepgram">☁️ Deepgram (Backup)</SelectItem>
-                                    <SelectItem value="elevenLabs">☁️ ElevenLabs</SelectItem>
-                                    <SelectItem value="groq">☁️ Groq</SelectItem>
-                                    <SelectItem value="openai">☁️ OpenAI</SelectItem> */}
+                                    <SelectItem value="openai">☁️ OpenAI Whisper (Recommended)</SelectItem>
+                                    <SelectItem value="deepgram">☁️ Deepgram (Fast Cloud)</SelectItem>
+                                    <SelectItem value="parakeet">⚡ Parakeet (Local Real-time)</SelectItem>
+                                    <SelectItem value="localWhisper">🏠 Local Whisper (Slow but Free)</SelectItem>
                                 </SelectContent>
                             </Select>
 

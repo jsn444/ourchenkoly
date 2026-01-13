@@ -1,10 +1,10 @@
 [package]
-name = "meetily"
+name = "ourchenkoly"
 version = "0.1.1"
-description = "A Tauri App for meeting minutes"
-authors = ["Sujith S"]
+description = "AI-powered meeting transcription and summarization"
+authors = ["Ourchenkoly Team"]
 license = "MIT"
-repository = "https://github.com/Zackriya-Solutions/meeting-minutes"
+repository = "https://github.com/jsn444/Scribe-Notetaker"
 edition = "2021"
 rust-version = "1.77"
 
@@ -171,7 +171,7 @@ whisper-rs = { version = "0.13.2", features = ["raw-api", "metal", "coreml"] }
 #   --features vulkan   (AMD/Intel GPUs)
 #   --features openblas (OpenBLAS optimization, requires BLAS_INCLUDE_DIRS)
 [target.'cfg(target_os = "windows")'.dependencies]
-whisper-rs = { version = "0.13.2", features = ["raw-api", "vulkan"] }
+whisper-rs = { version = "0.13.2", features = ["raw-api"] }
 futures-channel = "0.3.31"
 
 # Linux-specific dependencies
